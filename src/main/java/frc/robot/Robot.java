@@ -85,10 +85,10 @@ public class Robot extends TimedRobot {
     mpController.drive.setOutputVelocity(mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds));
 
     trajectoryTime += 0.02;
-    SmartDashboard.putNumber("FL:", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontLeftMetersPerSecond);
-    SmartDashboard.putNumber("FR: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontRightMetersPerSecond);
-    SmartDashboard.putNumber("RL: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearLeftMetersPerSecond);
-    SmartDashboard.putNumber("RR: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearRightMetersPerSecond);
+    SmartDashboard.putNumber("FL Expected:", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontLeftMetersPerSecond);
+    SmartDashboard.putNumber("FR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontRightMetersPerSecond);
+    SmartDashboard.putNumber("RL Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearLeftMetersPerSecond);
+    SmartDashboard.putNumber("RR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearRightMetersPerSecond);
     SmartDashboard.putNumber("X Pose (Side-to-Side): ", mpController.drive.getPose().getX());
     SmartDashboard.putNumber("Y Pose (Forward-Back): ", mpController.drive.getPose().getY());
     SmartDashboard.putNumber("Rotation Pose: ", mpController.drive.getPose().getRotation().getDegrees());

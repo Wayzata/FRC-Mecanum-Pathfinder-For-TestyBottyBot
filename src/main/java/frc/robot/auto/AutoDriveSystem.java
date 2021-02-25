@@ -265,9 +265,9 @@ public class AutoDriveSystem {
     }
 
     public void putWheelVelocities(){
-        SmartDashboard.putNumber("Front Left", getSpeeds().frontLeftMetersPerSecond);
-        SmartDashboard.putNumber("Back Left", getSpeeds().rearLeftMetersPerSecond);
-        SmartDashboard.putNumber("Front Right", getSpeeds().frontRightMetersPerSecond);
-        SmartDashboard.putNumber("Back Right", getSpeeds().rearRightMetersPerSecond);
+        SmartDashboard.putNumber("FL Actual:", getSpeeds().frontLeftMetersPerSecond);
+        SmartDashboard.putNumber("BL Actual:", getSpeeds().rearLeftMetersPerSecond);
+        SmartDashboard.putNumber("FR Actual:", getSpeeds().frontRightMetersPerSecond);
+        SmartDashboard.putNumber("BR Actual:", getSpeeds().rearRightMetersPerSecond);
     }
 }
