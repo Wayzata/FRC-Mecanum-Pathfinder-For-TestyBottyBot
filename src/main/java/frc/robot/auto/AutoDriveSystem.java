@@ -225,7 +225,7 @@ public class AutoDriveSystem {
         // frontLeft.configPeakOutputReverse(-1);
         // frontLeft.setNeutralMode(NeutralMode.Brake);
         frontLeft.setSensorPhase(true);
-        // frontLeft.config_kP(0, Auto.fl_kP);
+        frontLeft.config_kP(0, Auto.fl_kP);
         // frontLeft.config_kI(0, Auto.fl_kI);
         // frontLeft.config_kD(0, Auto.fl_kD);
 
@@ -235,7 +235,7 @@ public class AutoDriveSystem {
         // frontRight.setNeutralMode(NeutralMode.Brake);
         frontRight.setSensorPhase(true);
         frontRight.setInverted(true);
-        // frontRight.config_kP(0, Auto.fr_kP);
+        frontRight.config_kP(0, Auto.fr_kP);
         // frontRight.config_kI(0, Auto.fr_kI);
         // frontRight.config_kD(0, Auto.fr_kD);
         
@@ -244,7 +244,7 @@ public class AutoDriveSystem {
         // backLeft.configPeakOutputReverse(-1);
         // backLeft.setNeutralMode(NeutralMode.Brake);
         backLeft.setSensorPhase(true);
-        // backLeft.config_kP(0, Auto.bl_kP);
+        backLeft.config_kP(0, Auto.bl_kP);
         // backLeft.config_kI(0, Auto.bl_kI);
         // backLeft.config_kD(0, Auto.bl_kD);
 
@@ -254,7 +254,7 @@ public class AutoDriveSystem {
         // backRight.setNeutralMode(NeutralMode.Brake);
         backRight.setSensorPhase(true);
         backRight.setInverted(true);
-        // backRight.config_kP(0, Auto.br_kP);
+        backRight.config_kP(0, Auto.br_kP);
         // backRight.config_kI(0, Auto.br_kI);
         // backRight.config_kD(0, Auto.br_kD);
 
