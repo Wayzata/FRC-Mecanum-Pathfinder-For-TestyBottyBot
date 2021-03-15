@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.kinematics.MecanumDriveMotorVoltages;
 import edu.wpi.first.wpilibj.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
@@ -39,7 +40,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     mpController = new MPController();
 
-    testTraj = trajectories.generateAutoTrajectoryFromCurrentPose(3, new Pose2d());
+    testTraj = trajectories.generateAutoTrajectoryFromCurrentPose(1, new Pose2d());
     mpController.drive.setupMotorConfigs();
 
   }
@@ -48,6 +49,9 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     mpController.drive.putEncoder();
     mpController.drive.putGyro();
+    SmartDashboard.putNumber("X Pose (Side-to-Side): ", mpController.drive.getPose().getX());
+    SmartDashboard.putNumber("Y Pose (Forward-Back): ", mpController.drive.getPose().getY());
+    SmartDashboard.putNumber("Rotation Pose: ", mpController.drive.getPose().getRotation().getDegrees());
     mpController.drive.putWheelVelocities();
     CommandScheduler.getInstance().run();
   }
@@ -70,28 +74,27 @@ public class Robot extends TimedRobot {
     // Update our odometry
     mpController.drive.periodic();    
   
-   // mpController.createMecanumFollowerCommand(testTraj, Units.metersToFeet(1.5)).schedule();
+    mpController.createMecanumFollowerCommand(testTraj, Units.metersToFeet(1.5)).schedule();
   }
 
   @Override
   public void autonomousPeriodic() {
     // Continue updating odometry while we use it in autonomous
-    mpController.drive.periodic(); 
+      mpController.drive.periodic(); 
 
-    goalPoint = testTraj.sample(trajectoryTime);
+    //mpController.drive.setOutputVolts(new MecanumDriveMotorVoltages(3, 3, 3, 3));
 
-    trajSpeeds = mpController.drive.HDC.calculate(mpController.drive.getPose(), goalPoint, goalPoint.poseMeters.getRotation());
+    // goalPoint = testTraj.sample(trajectoryTime);
 
-    mpController.drive.setOutputVelocity(mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds));
+    // trajSpeeds = mpController.drive.HDC.calculate(mpController.drive.getPose(), goalPoint, goalPoint.poseMeters.getRotation());
 
-    trajectoryTime += 0.02;
-    SmartDashboard.putNumber("FL Expected:", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontLeftMetersPerSecond);
-    SmartDashboard.putNumber("FR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontRightMetersPerSecond);
-    SmartDashboard.putNumber("RL Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearLeftMetersPerSecond);
-    SmartDashboard.putNumber("RR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearRightMetersPerSecond);
-    SmartDashboard.putNumber("X Pose (Side-to-Side): ", mpController.drive.getPose().getX());
-    SmartDashboard.putNumber("Y Pose (Forward-Back): ", mpController.drive.getPose().getY());
-    SmartDashboard.putNumber("Rotation Pose: ", mpController.drive.getPose().getRotation().getDegrees());
+    // mpController.drive.setOutputVelocity(mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds));
+
+    // trajectoryTime += 0.02;
+    // SmartDashboard.putNumber("FL Expected:", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontLeftMetersPerSecond);
+    // SmartDashboard.putNumber("FR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontRightMetersPerSecond);
+    // SmartDashboard.putNumber("RL Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearLeftMetersPerSecond);
+    // SmartDashboard.putNumber("RR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearRightMetersPerSecond);
   }
 
   @Override

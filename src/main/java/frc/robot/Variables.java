@@ -13,7 +13,7 @@ public class Variables {
         public static final int backRight = 1;
 
         // Measurements in INCHES
-        public static final double kWheelRadiusInches = 4.0;
+        public static final double kWheelRadiusInches = 2.0;
         public static final int kEncoderTicksPerRev = 2048;
 
         // Wheel positions in FEET
@@ -51,9 +51,9 @@ public class Variables {
         public static final double br_kD = 0;
         
         // Characterization Data
-        public static final double kS = 0.533;
-        public static final double kV = 1.29;
-        public static final double kA = 0.0759;
+        public static final double kS = 0.495;
+        public static final double kV = 2.04;
+        public static final double kA = 0.119;
     }
 
 }

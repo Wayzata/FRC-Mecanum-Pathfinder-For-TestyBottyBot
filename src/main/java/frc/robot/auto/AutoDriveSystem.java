@@ -1,5 +1,5 @@
 package frc.robot.auto;
-
+//hi jack - love hunter 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -53,8 +53,8 @@ public class AutoDriveSystem {
 
     // Adjust based on how well the robot tracks the trajectory. NOT TUNED
     PIDController xController = new PIDController(1, 0, 0);
-    PIDController yController = new PIDController(1, 0, 0);
-    ProfiledPIDController thetaController = new ProfiledPIDController(.95, 0, 0,  new TrapezoidProfile.Constraints(Math.PI, Math.PI));
+    PIDController yController = new PIDController(1.2, 0, 0);
+    ProfiledPIDController thetaController = new ProfiledPIDController(1.1, 0, 0,  new TrapezoidProfile.Constraints(Math.PI, Math.PI));
 
     // PID for each wheel CHARACTERIZATION GETS YOU PRETTY CLOSE BUT MAKE SURE TO TUNE.. i think
     PIDController frontLeftPID = new PIDController(Auto.fl_kP, 0, 0);
@@ -90,10 +90,10 @@ public class AutoDriveSystem {
      */
     public MecanumDriveWheelSpeeds getSpeeds() { 
         return new MecanumDriveWheelSpeeds(
-            ((frontLeft.getSelectedSensorVelocity() * 10) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio)) * Units.inchesToMeters(Auto.kWheelRadiusInches * Math.PI * 2),
-            ((frontRight.getSelectedSensorVelocity() * 10) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio)) * Units.inchesToMeters(Auto.kWheelRadiusInches * Math.PI * 2),
-            ((backLeft.getSelectedSensorVelocity() * 10) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio)) * Units.inchesToMeters(Auto.kWheelRadiusInches * Math.PI * 2),
-            ((backRight.getSelectedSensorVelocity() * 10) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio)) * Units.inchesToMeters(Auto.kWheelRadiusInches * Math.PI * 2)
+            ((frontLeft.getSelectedSensorVelocity() * 10 * Units.inchesToMeters(Auto.kWheelRadiusInches) * Math.PI * 2) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio)),
+            ((frontRight.getSelectedSensorVelocity() * 10 * Units.inchesToMeters(Auto.kWheelRadiusInches) * Math.PI * 2) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio)),
+            ((backLeft.getSelectedSensorVelocity() * 10 * Units.inchesToMeters(Auto.kWheelRadiusInches) * Math.PI * 2) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio)),
+            ((backRight.getSelectedSensorVelocity() * 10 * Units.inchesToMeters(Auto.kWheelRadiusInches) * Math.PI * 2) / (Auto.kEncoderTicksPerRev * Auto.kGearRatio))
         );
     }
 
@@ -223,7 +223,7 @@ public class AutoDriveSystem {
         frontLeft.configFactoryDefault();
         // frontLeft.configPeakOutputForward(1);
         // frontLeft.configPeakOutputReverse(-1);
-        // frontLeft.setNeutralMode(NeutralMode.Brake);
+        frontLeft.setNeutralMode(NeutralMode.Brake);
         frontLeft.setSensorPhase(true);
         frontLeft.config_kP(0, Auto.fl_kP);
         // frontLeft.config_kI(0, Auto.fl_kI);
@@ -232,7 +232,7 @@ public class AutoDriveSystem {
         frontRight.configFactoryDefault();
         // frontRight.configPeakOutputForward(1);
         // frontRight.configPeakOutputReverse(-1);
-        // frontRight.setNeutralMode(NeutralMode.Brake);
+        frontRight.setNeutralMode(NeutralMode.Brake);
         frontRight.setSensorPhase(true);
         frontRight.setInverted(true);
         frontRight.config_kP(0, Auto.fr_kP);
@@ -241,8 +241,8 @@ public class AutoDriveSystem {
         
         backLeft.configFactoryDefault();
         // backLeft.configPeakOutputForward(1);
-        // backLeft.configPeakOutputReverse(-1);
-        // backLeft.setNeutralMode(NeutralMode.Brake);
+        // backLeft.configPeakOutputReverse(-1)
+        backLeft.setNeutralMode(NeutralMode.Brake);
         backLeft.setSensorPhase(true);
         backLeft.config_kP(0, Auto.bl_kP);
         // backLeft.config_kI(0, Auto.bl_kI);
@@ -251,7 +251,7 @@ public class AutoDriveSystem {
         backRight.configFactoryDefault();
         // backRight.configPeakOutputForward(1);
         // backRight.configPeakOutputReverse(-1);
-        // backRight.setNeutralMode(NeutralMode.Brake);
+        backRight.setNeutralMode(NeutralMode.Brake);
         backRight.setSensorPhase(true);
         backRight.setInverted(true);
         backRight.config_kP(0, Auto.br_kP);
