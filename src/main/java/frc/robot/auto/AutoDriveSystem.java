@@ -1,4 +1,5 @@
 package frc.robot.auto;
+
 //hi jack - love hunter 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
@@ -10,19 +11,22 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.controller.HolonomicDriveController;
-import edu.wpi.first.wpilibj.controller.PIDController;
-import edu.wpi.first.wpilibj.controller.ProfiledPIDController;
+import frc.robot.controllers.PIDController;
+import frc.robot.controllers.ProfiledPIDController;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.geometry.Translation2d;
+import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.kinematics.MecanumDriveKinematics;
 import edu.wpi.first.wpilibj.kinematics.MecanumDriveMotorVoltages;
 import edu.wpi.first.wpilibj.kinematics.MecanumDriveOdometry;
 import edu.wpi.first.wpilibj.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.util.Units;
+import frc.robot.Robot;
 import frc.robot.Variables.Auto;
 
 public class AutoDriveSystem {
@@ -37,23 +41,27 @@ public class AutoDriveSystem {
     ADXRS450_Gyro m_Gyro = new ADXRS450_Gyro();
 
     // Mecanum Kinematics Setup - WHEEL POSITION RELATIVE TO CENTER OF ROBOT IN METERS NEED TO CONVERT TO METERS
-    Translation2d m_frontLeftLocation = new Translation2d(Units.feetToMeters(Auto.kFrontLeft_x), Units.feetToMeters(Auto.kFrontLeft_y));
-    Translation2d m_frontRightLocation = new Translation2d(Units.feetToMeters(Auto.kFrontRight_x), Units.feetToMeters(Auto.kFrontRight_y));
-    Translation2d m_backLeftLocation = new Translation2d(Units.feetToMeters(Auto.kBackLeft_x), Units.feetToMeters(Auto.kBackLeft_y));
-    Translation2d m_backRightLocation = new Translation2d(Units.feetToMeters(Auto.kBackRight_x), Units.feetToMeters(Auto.kBackRight_y));
+    static Translation2d m_frontLeftLocation = new Translation2d(Units.feetToMeters(Auto.kFrontLeft_x), Units.feetToMeters(Auto.kFrontLeft_y));
+    static Translation2d m_frontRightLocation = new Translation2d(Units.feetToMeters(Auto.kFrontRight_x), Units.feetToMeters(Auto.kFrontRight_y));
+    static Translation2d m_backLeftLocation = new Translation2d(Units.feetToMeters(Auto.kBackLeft_x), Units.feetToMeters(Auto.kBackLeft_y));
+    static Translation2d m_backRightLocation = new Translation2d(Units.feetToMeters(Auto.kBackRight_x), Units.feetToMeters(Auto.kBackRight_y));
 
     // Creating my kinematics object using the wheel locations.
-    MecanumDriveKinematics kinematics = new MecanumDriveKinematics(m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
-
+    static MecanumKinematics kinematics = new MecanumKinematics(m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation);
     // Odometry Object -- Initialized after resetting encoders
-    MecanumDriveOdometry odometry;
+    MecanumOdometry odometry;
 
     // Simple Feed Forward gotten from CHARACTERIZATION | kS | kV | kA |
     SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Auto.kS, Auto.kV, Auto.kA);
 
+
+    public static void main(String[] args){
+        System.out.println(kinematics.toChassisSpeeds(new MecanumDriveWheelSpeeds(1, -1, -1, 1)));
+        System.out.println(kinematics.toWheelSpeeds(new ChassisSpeeds(0, 1, 1)));
+    }
     // Adjust based on how well the robot tracks the trajectory. NOT TUNED
     PIDController xController = new PIDController(1, 0, 0);
-    PIDController yController = new PIDController(1.2, 0, 0);
+    PIDController yController = new PIDController(1.1, 0, 0);
     ProfiledPIDController thetaController = new ProfiledPIDController(1.1, 0, 0,  new TrapezoidProfile.Constraints(Math.PI, Math.PI));
 
     // PID for each wheel CHARACTERIZATION GETS YOU PRETTY CLOSE BUT MAKE SURE TO TUNE.. i think
@@ -65,9 +73,6 @@ public class AutoDriveSystem {
     // Robot pose object
     Pose2d pose = new Pose2d();
 
-    // Holonomic Drive Controller
-    public HolonomicDriveController HDC = new HolonomicDriveController(xController, yController, thetaController);
-
     /**
      * Gets a Rotation2d object from the gyro object
      * @return Rotation2d of current gyro heading
@@ -77,7 +82,7 @@ public class AutoDriveSystem {
     }
 
     /**
-     * Gets gyro heading from -180 to 180. Normalized for wpilib
+     * Gets gyro heading from -180 to 180. CCW Positive
      * @return Gyro Heading [-180, 180]
      */
     public double getGyroHeading(){
@@ -109,7 +114,7 @@ public class AutoDriveSystem {
         return feedforward;
     }
 
-    public MecanumDriveKinematics getKinematics() {
+    public MecanumKinematics getKinematics() {
         return kinematics;
     }
 
@@ -139,6 +144,10 @@ public class AutoDriveSystem {
 
     public PIDController getBackRightPidController() {
         return backRightPID;
+    }
+
+    public Rotation2d getDesiredRotation(){
+        return Robot.selectedTrajectory[1].sample(Robot.m_autoTimer.get()).poseMeters.getRotation();
     }
 
     /**
@@ -194,6 +203,23 @@ public class AutoDriveSystem {
     }
 
     /**
+     * Resets the gyro heading but nothing else.
+     */
+    public void resetGyro() {
+        m_Gyro.reset();
+    }
+
+    /**
+     * Resets the robots odometry to the given starting point. Does not reset the robots heading!
+     * If you need to reset the gyro as well, call resetGyro() BEFORE!
+     * @param newPose - The new starting pose to set the robot to.
+     */
+    public void resetOdometry(Pose2d newPose) {
+        resetEncoders();
+        odometry.resetPosition(newPose, getHeading());
+    }
+
+    /**
      * Updates the robot pose. Required to get called periodically.
      */
     public void periodic() {
@@ -215,7 +241,7 @@ public class AutoDriveSystem {
     }
 
     public void initializeOdometry(){
-        odometry = new MecanumDriveOdometry(kinematics, getHeading());
+        odometry = new MecanumOdometry(kinematics, getHeading());
     }
 
     public void setupMotorConfigs(){
@@ -223,7 +249,7 @@ public class AutoDriveSystem {
         frontLeft.configFactoryDefault();
         // frontLeft.configPeakOutputForward(1);
         // frontLeft.configPeakOutputReverse(-1);
-        frontLeft.setNeutralMode(NeutralMode.Brake);
+        frontLeft.setNeutralMode(NeutralMode.Coast);
         frontLeft.setSensorPhase(true);
         frontLeft.config_kP(0, Auto.fl_kP);
         // frontLeft.config_kI(0, Auto.fl_kI);
@@ -232,7 +258,7 @@ public class AutoDriveSystem {
         frontRight.configFactoryDefault();
         // frontRight.configPeakOutputForward(1);
         // frontRight.configPeakOutputReverse(-1);
-        frontRight.setNeutralMode(NeutralMode.Brake);
+        frontRight.setNeutralMode(NeutralMode.Coast);
         frontRight.setSensorPhase(true);
         frontRight.setInverted(true);
         frontRight.config_kP(0, Auto.fr_kP);
@@ -242,7 +268,7 @@ public class AutoDriveSystem {
         backLeft.configFactoryDefault();
         // backLeft.configPeakOutputForward(1);
         // backLeft.configPeakOutputReverse(-1)
-        backLeft.setNeutralMode(NeutralMode.Brake);
+        backLeft.setNeutralMode(NeutralMode.Coast);
         backLeft.setSensorPhase(true);
         backLeft.config_kP(0, Auto.bl_kP);
         // backLeft.config_kI(0, Auto.bl_kI);
@@ -251,7 +277,7 @@ public class AutoDriveSystem {
         backRight.configFactoryDefault();
         // backRight.configPeakOutputForward(1);
         // backRight.configPeakOutputReverse(-1);
-        backRight.setNeutralMode(NeutralMode.Brake);
+        backRight.setNeutralMode(NeutralMode.Coast);
         backRight.setSensorPhase(true);
         backRight.setInverted(true);
         backRight.config_kP(0, Auto.br_kP);

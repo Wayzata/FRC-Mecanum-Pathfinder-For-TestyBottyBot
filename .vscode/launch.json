@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "Launch AutoDriveSystem",
+      "request": "launch",
+      "mainClass": "frc.robot.auto.AutoDriveSystem",
+      "projectName": "FRC 2021 Trajectory Following"
+    },
+    {
+      "type": "java",
       "name": "Launch Trajectories",
       "request": "launch",
       "mainClass": "frc.robot.auto.Trajectories",

@@ -1,21 +1,30 @@
 package frc.robot.auto;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
 import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.util.Units;
 
 import java.awt.*;
+import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Vector;
+import java.util.stream.Collectors;
 
 public class Trajectories {
 
     /**
      * Trajectory Configs 
      */
-    TrajectoryConfig testConfig = new TrajectoryConfig(1.5, 1.5);
+    TrajectoryConfig testConfig = new TrajectoryConfig(3, 1.5);
 
     public Trajectories() {
         testConfig.setStartVelocity(0);
@@ -24,8 +33,8 @@ public class Trajectories {
     }
 
     /**
-     * 
-     * @param trajectoryID - Available: [1 - Test Trajectory] [2 - Trench Pickup from Center]
+     * Most likely deprecated with the use of new GUI Path Planner. Use CSV files instead!
+     * @param trajectoryID - Available: [1 - Test Trajectory] [2 - Barrel Race Path]
      * @param currentPose - The current position(x, y, z) of the robot in the object Pose2d
      * @return
      */
@@ -33,10 +42,22 @@ public class Trajectories {
         switch (trajectoryID){
             case 1:
             return TrajectoryGenerator.generateTrajectory(
-                Arrays.asList(new Pose2d(), new Pose2d(Units.feetToMeters(10), 0, Rotation2d.fromDegrees(0)), new Pose2d(Units.feetToMeters(10), Units.feetToMeters(-10), Rotation2d.fromDegrees(-90))), 
+                Arrays.asList(new Pose2d(), new Pose2d(Units.feetToMeters(10), 0, Rotation2d.fromDegrees(0))), 
+                testConfig
+            );
+            case 2:
+            return TrajectoryGenerator.generateTrajectory(
+                Arrays.asList(new Pose2d(0, 0, Rotation2d.fromDegrees(0)), new Pose2d(Units.feetToMeters(12), 0, Rotation2d.fromDegrees(0))), 
+                testConfig
+            );
+            case 3:
+            return TrajectoryGenerator.generateTrajectory(
+                Arrays.asList(new Pose2d(Units.feetToMeters(12), 0, Rotation2d.fromDegrees(0)), new Pose2d(Units.feetToMeters(12), Units.feetToMeters(-5), Rotation2d.fromDegrees(0))), 
                 testConfig
             );
 
+            //new Pose2d(1.468, -0.9, Rotation2d.fromDegrees(0)), 
+            //new Pose2d(1.5, 0, Rotation2d.fromDegrees(0)), new Pose2d(4.05, 0, Rotation2d.fromDegrees(0)))
             default:
                 return TrajectoryGenerator.generateTrajectory(
                     Arrays.asList(currentPose, new Pose2d(0, Units.feetToMeters(5), Rotation2d.fromDegrees(0))), // Makes the robot go 5 feet in y direction on autonomousInit();
@@ -45,60 +66,109 @@ public class Trajectories {
         }
     }
 
-    /**
-     * Below is used only to help visually see the field and different lengths. Run this main on the computer 
+     /**
+     * Loads a Trajectory JSON into a Trajectory object
+     * @param pathToJSON - File path to JSON of the trajectory
+     * @return Trajectory loaded from given JSON
      */
-    public static void main(String[] args) {
-        double[][] base = new double[][]{{0,0}};
-        FalconLinePlot fig = new FalconLinePlot(base, Color.blue, Color.blue);
-        fig.setXTic(0, 52, 1);
-        fig.setYTic(0, 27, 1);
-        fig.xGridOn();
-        fig.yGridOn();
-        drawInfiniteRecharge(fig);
+    public Trajectory loadTrajectoryFromJSON(String pathToJSON){
+        Trajectory trajectory = new Trajectory();
+        try {
+            Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(pathToJSON);
+            trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+        } catch (IOException ex) {
+            DriverStation.reportError("Unable to open trajectory: " + pathToJSON, ex.getStackTrace());
+        }
+
+        return trajectory;
     }
 
-    public static void drawInfiniteRecharge(FalconLinePlot fig){
-        double[][] autoLineRed = new double[][] {{10,0}, {10, 27}};
-        double[][] autoLineBlue = new double[][] {{42, 0}, {42, 27}};
-        double[][] blueTrench = new double[][] {{17, 0}, {17, 4.5}, {35, 4.5}, {35,0}};
-        double[][] redTrench = new double[][] {{17, 27}, {17, 22.5}, {35, 22.5}, {35,27}};
-        double[][] redTargetZone = new double[][] {{0, 17}, {2.5, 19}, {0, 21}};
-        double[][] blueTargetZone = new double[][] {{52, 10}, {49.5, 8}, {52, 6}};
-        double[][] climbTower = new double[][] {{17, 17}, {22, 4.5}, {35, 10}, {30, 22.5}, {17, 17}};
-        double[][] redControlPanel = new double[][] {{28.5, 27}, {28.5, 22.5}, {31, 22.5}, {31, 27}};
-        double[][] blueControlPanel = new double[][] {{23.5, 0}, {23.5, 4.5}, {21, 4.5}, {21, 0}};
-    
-        fig.addData(autoLineBlue, Color.black);
-        fig.addData(autoLineRed, Color.black);
-        fig.addData(blueTrench, Color.blue);
-        fig.addData(redTrench, Color.red);
-        fig.addData(redTargetZone, Color.red);
-        fig.addData(blueTargetZone, Color.blue);
-        fig.addData(climbTower, Color.black);
-        fig.addData(redControlPanel, Color.black);
-        fig.addData(blueControlPanel, Color.black);
-        drawBall(fig, 20, 24.75);
-        drawBall(fig, 23, 24.75);
-        drawBall(fig, 26, 24.75);
-        drawBall(fig, 31.25, 25.5);
-        drawBall(fig, 31.25, 24);
-      }
-    
-      private static void drawBall(FalconLinePlot fig, double x, double y){
-        final int NUM_POINTS = 15;
-        final double RADIUS = 0.58;
-        
-        double[] ballCoordinateX = new double[16];
-        double[] ballCoordinateY = new double[16];
-    
-        for (int i = 0; i <= NUM_POINTS; ++i)
-        {
-            final double angle = Math.toRadians(((double) i / NUM_POINTS) * 360d);
-            ballCoordinateX[i] = Math.cos(angle) * RADIUS + x;
-            ballCoordinateY[i] = Math.sin(angle) * RADIUS + y; 
+    /**
+     * Loads a trajectory from a 2D double array
+     * @param path - The double array to load from
+     * @return
+     */
+    public Trajectory loadTrajectoryFromPathArray(Double[][] path){
+        List<Trajectory.State> states = new Vector<Trajectory.State>();
+
+
+        for (Double[] d : path){
+            states.add(new Trajectory.State(d[0], d[1], d[2], new Pose2d(d[3], d[4], Rotation2d.fromDegrees(d[5])), 1/d[6]));
         }
-        fig.addData(ballCoordinateX, ballCoordinateY, Color.yellow);
-    
-      }
+
+
+        return new Trajectory(states);
+    }
+
+    private Trajectory[] loadTrajectoryFromPathCSV(String path) throws IOException {
+        List<Trajectory.State> states = new Vector<Trajectory.State>();
+        List<Trajectory.State> headingStates = new Vector<Trajectory.State>();
+
+        // path should be something like paths/ExamplePath.csv
+        Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(path);
+        //Path trajectoryPath = Path.of("C:/Users/jacka/Documents/Robotics/PathPlanner/ExamplePath.csv");
+
+        List<String[]> collect =
+          Files.lines(trajectoryPath).map(line -> line.split(",")).collect(Collectors.toList());
+
+        // Path Planner output format: (t, v, a, x, y, hh, r, h)
+        int c = 0;
+        double changeInRad;
+        double timeStep = 0.01;
+        double angularVelocity;
+
+        for (String[] s : collect){
+            if (s[6] == "Infinity"){
+                states.add(new Trajectory.State(Double.parseDouble(s[0]), Double.parseDouble(s[1]), Double.parseDouble(s[2]), new Pose2d(Double.parseDouble(s[3]), -Math.sqrt(2)*Double.parseDouble(s[4]), Rotation2d.fromDegrees(-1*Double.parseDouble(s[5]))), 1/Double.POSITIVE_INFINITY));
+            } else {
+                states.add(new Trajectory.State(Double.parseDouble(s[0]), Double.parseDouble(s[1]), Double.parseDouble(s[2]), new Pose2d(Double.parseDouble(s[3]), -Math.sqrt(2)*Double.parseDouble(s[4]), Rotation2d.fromDegrees(-1*Double.parseDouble(s[5]))), 1/Double.parseDouble(s[6])));
+            }
+            if (c == 0){
+                headingStates.add(new Trajectory.State(Double.parseDouble(s[0]), 0, 0, new Pose2d(Double.parseDouble(s[3]), -1*Double.parseDouble(s[4]), Rotation2d.fromDegrees(Double.parseDouble(s[7]))), 0));
+            } else {
+                changeInRad = Math.toRadians(Math.abs(Double.parseDouble(s[5])) - Math.abs(Double.parseDouble(collect.get(c-1)[5])));
+                angularVelocity = changeInRad/timeStep;
+                headingStates.add(new Trajectory.State(Double.parseDouble(s[0]), angularVelocity, 0, new Pose2d(Double.parseDouble(s[3]), -1*Double.parseDouble(s[4]), Rotation2d.fromDegrees(Double.parseDouble(s[7]))), 0));
+            }
+            c++;
+        }
+
+        Trajectory[] trajectoryArray = new Trajectory[2];
+
+        trajectoryArray[0] = new Trajectory(states);
+        trajectoryArray[1] = new Trajectory(headingStates);
+            
+        return trajectoryArray;
+    }
+
+    /**
+     * Converts a clamped angle between [-180,180]
+     * @param angle
+     * @return
+     */
+    private double angle180to360(double angle){
+        return 0;
+    }
+    /**
+     * Loads a Trajectory from a csv file in the robots deploy directory. 
+     * @param path - The path to the csv file. Should be like: paths/example.csv
+     * @return Trajectory[] from given state points in the csv file. [0] = Trajectory to follow. [1] = Heading Trajectory
+     */
+    public Trajectory[] getTrajectoryFromCSV(String path){
+        try {
+            return loadTrajectoryFromPathCSV(path);
+        } catch (IOException e) {
+            System.out.println("Error loading path from csv file: " + path);
+            System.out.println("Trajectory supplied will be empty!");
+            DriverStation.reportError("Error loading path from csv file: " + path, e.getStackTrace());
+            Trajectory[] nullTraj = new Trajectory[2];
+            return nullTraj;
+        }
+    }
+
+    /**
+     * Test method to run methods outside of the entire program. Allows for testing trajectories
+     */
+    public static void main(String[] args) {
+    }
 }

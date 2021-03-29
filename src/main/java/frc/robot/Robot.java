@@ -8,16 +8,14 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.geometry.Pose2d;
-import edu.wpi.first.wpilibj.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.kinematics.MecanumDriveMotorVoltages;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.kinematics.MecanumDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.util.Units;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.MecanumControllerCommand;
 import frc.robot.auto.MPController;
 import frc.robot.auto.Trajectories;
 
@@ -26,42 +24,59 @@ public class Robot extends TimedRobot {
   // Creates our Motion Profile Controller and Trajectories class
   Trajectories trajectories = new Trajectories();
   MPController mpController;
-  Command autoCommand; 
 
-  Trajectory testTraj;
+  public static Timer m_autoTimer = new Timer();
 
-  Trajectory.State goalPoint;
+  public static Trajectory[] selectedTrajectory = new Trajectory[2];
 
-  ChassisSpeeds trajSpeeds;
+  String selectedPath;
 
   double trajectoryTime;
+
+  /**
+   * Trajectory Paths. 
+   */
+  String rightFivePath = "paths/RightFiveFeet.csv";
+  String forwardTenSpinPath = "paths/ForwardTenSpin.csv";
+  String barrelRacePath = "paths/BarrelRacePath.csv";
+  String forwardTenPath = "paths/ForwardTen.csv";
+  String slalomPath = "paths/SlalomPath.csv";
+  String circlePath = "paths/TestCircle.csv";
+
+  Command autoCommand;
 
   @Override
   public void robotInit() {
     mpController = new MPController();
 
-    testTraj = trajectories.generateAutoTrajectoryFromCurrentPose(1, new Pose2d());
+    // Sets the path to be driven. 
+    selectedPath = circlePath;
+
+    for (int i = 0; i < 2; i++){
+      selectedTrajectory[i] = trajectories.getTrajectoryFromCSV(selectedPath)[i];
+    }
+
     mpController.drive.setupMotorConfigs();
 
+    trajectoryTime = selectedTrajectory[0].getTotalTimeSeconds();
+    System.out.println("Total Trajectory Time: " + trajectoryTime + "s");
+    
   }
 
   @Override
   public void robotPeriodic() {
     mpController.drive.putEncoder();
     mpController.drive.putGyro();
-    SmartDashboard.putNumber("X Pose (Side-to-Side): ", mpController.drive.getPose().getX());
-    SmartDashboard.putNumber("Y Pose (Forward-Back): ", mpController.drive.getPose().getY());
-    SmartDashboard.putNumber("Rotation Pose: ", mpController.drive.getPose().getRotation().getDegrees());
+    SmartDashboard.putNumber("X Pose (Ft): ", Units.metersToFeet(mpController.drive.getPose().getX()));
+    SmartDashboard.putNumber("Y Pose (Ft): ", Units.metersToFeet(mpController.drive.getPose().getY()));
+    SmartDashboard.putNumber("Rotation Pose (Degrees): ", mpController.drive.getPose().getRotation().getDegrees());
     mpController.drive.putWheelVelocities();
     CommandScheduler.getInstance().run();
   }
 
   @Override
   public void autonomousInit() {
-
-    trajectoryTime = 0.0;
-    // Initialize Auto Drive System
-
+    
     // Reset encoders
     mpController.drive.resetEncoders();
 
@@ -71,30 +86,29 @@ public class Robot extends TimedRobot {
     // Ensure our odometry is at 0
     mpController.drive.reset();
 
+    // Reset odometry to starting point of path
+    mpController.drive.resetOdometry(selectedTrajectory[0].getInitialPose());
+
     // Update our odometry
     mpController.drive.periodic();    
+
+    autoCommand = mpController.createTrajectoryFollowerCommand(selectedTrajectory[0], selectedTrajectory[1], 2.5);
+
+    autoCommand.schedule();
+
+    m_autoTimer.reset();
+    m_autoTimer.start();
   
-    mpController.createMecanumFollowerCommand(testTraj, Units.metersToFeet(1.5)).schedule();
   }
 
   @Override
   public void autonomousPeriodic() {
     // Continue updating odometry while we use it in autonomous
-      mpController.drive.periodic(); 
+    mpController.drive.periodic(); 
 
-    //mpController.drive.setOutputVolts(new MecanumDriveMotorVoltages(3, 3, 3, 3));
-
-    // goalPoint = testTraj.sample(trajectoryTime);
-
-    // trajSpeeds = mpController.drive.HDC.calculate(mpController.drive.getPose(), goalPoint, goalPoint.poseMeters.getRotation());
-
-    // mpController.drive.setOutputVelocity(mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds));
-
-    // trajectoryTime += 0.02;
-    // SmartDashboard.putNumber("FL Expected:", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontLeftMetersPerSecond);
-    // SmartDashboard.putNumber("FR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).frontRightMetersPerSecond);
-    // SmartDashboard.putNumber("RL Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearLeftMetersPerSecond);
-    // SmartDashboard.putNumber("RR Expected: ", mpController.drive.getKinematics().toWheelSpeeds(trajSpeeds).rearRightMetersPerSecond);
+    if (autoCommand.isFinished()){
+      m_autoTimer.stop();
+    }
   }
 
   @Override
