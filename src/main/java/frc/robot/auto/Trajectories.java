@@ -9,8 +9,6 @@ import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.util.Units;
-
-import java.awt.*;
 import java.util.List;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -141,14 +139,6 @@ public class Trajectories {
         return trajectoryArray;
     }
 
-    /**
-     * Converts a clamped angle between [-180,180]
-     * @param angle
-     * @return
-     */
-    private double angle180to360(double angle){
-        return 0;
-    }
     /**
      * Loads a Trajectory from a csv file in the robots deploy directory. 
      * @param path - The path to the csv file. Should be like: paths/example.csv

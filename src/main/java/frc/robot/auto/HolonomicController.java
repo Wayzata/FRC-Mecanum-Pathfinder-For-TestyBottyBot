@@ -4,8 +4,6 @@
 
 package frc.robot.auto;
 
-import java.util.Random;
-
 import frc.robot.controllers.PIDController;
 import frc.robot.controllers.ProfiledPIDController;
 import edu.wpi.first.wpilibj.geometry.Pose2d;
