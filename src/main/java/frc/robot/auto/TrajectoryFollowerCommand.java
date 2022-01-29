@@ -177,7 +177,7 @@ public class TrajectoryFollowerCommand extends CommandBase {
         m_controller.calculate(m_pose.get(), desiredState, desiredState.poseMeters.getRotation(), desiredHeading);
     var targetWheelSpeeds = m_kinematics.toWheelSpeeds(targetChassisSpeeds);
 
-    targetWheelSpeeds.normalize(m_maxWheelVelocityMetersPerSecond);
+    targetWheelSpeeds.desaturate(m_maxWheelVelocityMetersPerSecond);
 
     var frontLeftSpeedSetpoint = targetWheelSpeeds.frontLeftMetersPerSecond;
     var rearLeftSpeedSetpoint = targetWheelSpeeds.rearLeftMetersPerSecond;
